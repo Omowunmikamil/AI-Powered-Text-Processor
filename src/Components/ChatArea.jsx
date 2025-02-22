@@ -47,7 +47,7 @@ const ChatArea = () => {
                   <option value="fr">French</option>
                 </select>
                 <button
-                  className="px-3 py-1 bg-gray-700 text-white rounded-md text-sm hover:bg-gray-400 hover:text-700"
+                  className="px-3 py-1 bg-gray-700 text-white rounded-md text-sm hover:bg-gray-400 hover:text-gray-700"
                   onClick={() => handleTranslate(msg.text)}
                 >
                   Translate
