@@ -1,64 +1,76 @@
-import { useContext, useRef, useEffect } from "react";
-import { IoSend } from "react-icons/io5";
+import { useContext } from "react";
 import { TextContext } from "../context/TextContext";
 
 const ChatArea = () => {
-  const { messages, input, setInput, sendMessage } = useContext(TextContext);
-  const chatEndRef = useRef(null);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  const {
+    messages,
+    input,
+    setInput,
+    sendMessage,
+    selectedLanguage,
+    setSelectedLanguage,
+    handleTranslate,
+    handleSummarize,
+  } = useContext(TextContext);
 
   return (
-    <div className="flex-1 flex-col w-full h-screen px-6 py-6 overflow-hidden">
-      {/* Chat Messages */}
-      <div className="h-[550px] overflow-y-auto bg-transparent flex flex-col space-y-2">
+    <div className="flex flex-col w-full md:w-3/4 h-screen p-6 bg-white rounded-xl shadow-lg">
+      <div className="flex-1 overflow-y-auto p-4 border-b border-gray-300">
         {messages.map((msg, index) => (
           <div
             key={index}
-            className={`p-3 rounded-lg ${
+            className={`my-2 p-3 max-w-xs md:max-w-md rounded-lg ${
               msg.sender === "bot"
-                ? "bg-purple-700 text-white self-start mb-4"
-                : "bg-gray-300 self-end"
+                ? "bg-gray-200 text-gray-800"
+                : "bg-blue-500 text-white self-end"
             }`}
           >
             {msg.text}
-            {msg.buttons && (
+            {msg.sender === "bot" && (
               <div className="flex gap-2 mt-2">
-                {msg.buttons.map((button, btnIndex) => (
-                  <button key={btnIndex} className={button.style}>
-                    {button.text}
-                  </button>
-                ))}
+                <select
+                  value={selectedLanguage}
+                  onChange={(e) => setSelectedLanguage(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md"
+                >
+                  <option value="en">English</option>
+                  <option value="pt">Portuguese</option>
+                  <option value="es">Spanish</option>
+                  <option value="ru">Russian</option>
+                  <option value="tr">Turkish</option>
+                  <option value="fr">French</option>
+                </select>
+                <button
+                  className="px-3 py-1 bg-green-500 text-white rounded-md text-sm hover:bg-green-600"
+                  onClick={() => handleTranslate(msg.text)}
+                >
+                  Translate
+                </button>
+                <button
+                  className="px-3 py-1 bg-yellow-500 text-white rounded-md text-sm hover:bg-yellow-600"
+                  onClick={() => handleSummarize(msg.text)}
+                >
+                  Summarize
+                </button>
               </div>
             )}
           </div>
         ))}
-        <div ref={chatEndRef} /> {/* Invisible div for auto-scroll */}
       </div>
-
-      {/* Input Area */}
-      <div className="w-[90%] md:w-[70%] bg-slate-800 px-6 py-10 mx-auto rounded-md absolute bottom-6 left-[50%] md:left-[63%] transform -translate-x-1/2 shadow-lg">
-        <form action="" className="flex flex-row items-center gap-4">
-          <input
-            type="text"
-            className="w-full text-white outline-none bg-transparent border border-gray-600 rounded-xl shadow-lg py-3 px-4"
-            placeholder="Type a message..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          />
-          <button
-            className="rounded-full p-4 bg-gray-600 shadow-lg"
-            onClick={(e) => {
-              e.preventDefault();
-              sendMessage();
-            }}
-          >
-            <IoSend className="text-white text-2xl" />
-          </button>
-        </form>
+      <div className="flex items-center gap-2 mt-4">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-md"
+          placeholder="Type a message..."
+        />
+        <button
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          onClick={sendMessage}
+        >
+          Send
+        </button>
       </div>
     </div>
   );

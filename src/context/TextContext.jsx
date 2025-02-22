@@ -15,55 +15,89 @@ const TextProvider = ({ children }) => {
           },
         ];
   });
-  const [input, setInput] = useState("");
 
-  const sendMessage = () => {
+  const [input, setInput] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("en");
+
+  useEffect(() => {
+    localStorage.setItem("chatMessages", JSON.stringify(messages));
+  }, [messages]);
+
+  const detectLanguage = async (text) => {
+    if ("ai" in self && "languageDetector" in self.ai) {
+      const languageDetectorCapabilities =
+        await self.ai.languageDetector.capabilities();
+      if (languageDetectorCapabilities.capabilities === "readily") {
+        const detector = await self.ai.languageDetector.create();
+        const results = await detector.detect(text);
+        return results[0]?.detectedLanguage || "en";
+      }
+    }
+    return "en";
+  };
+
+  const translateText = async (text, targetLanguage) => {
+    if ("ai" in self && "translator" in self.ai) {
+      const translator = await self.ai.translator.create({
+        sourceLanguage: await detectLanguage(text),
+        targetLanguage,
+      });
+      return await translator.translate(text);
+    }
+    return text;
+  };
+
+  const sendMessage = async () => {
     if (input.trim() === "") return;
-    setMessages((prev) => {
-      const newMessages = [...prev, { text: input, sender: "user" }];
-      localStorage.setItem("chatMessages", JSON.stringify(newMessages));
-      return newMessages;
-    });
+    const newMessages = [...messages, { text: input, sender: "user" }];
+    setMessages(newMessages);
     setInput("");
 
-    // Simulate bot response after 1 second
     setTimeout(() => {
-      setMessages((prev) => {
-        const newMessages = [
-          ...prev,
-          {
-            text: "Choose your preferred language!",
-
-            buttons: [
-              {
-                text: "Translate",
-                action: "translate",
-                style:
-                  "bg-gray-300 text-gray-700 px-4 py-2 rounded-md shadow-md hover:bg-gray-600 hover:text-whit",
-              },
-              {
-                text: "Summarize",
-                action: "summarize",
-                style:
-                  "bg-gray-300 text-gray-700 px-4 py-2 rounded-md shadow-md hover:bg-gray-600 hover:text-whit",
-              },
-            ],
-            sender: "bot",
-          },
-        ];
-        localStorage.setItem("chatMessages", JSON.stringify(newMessages));
-        return newMessages;
-      });
+      const botReply = [
+        ...newMessages,
+        {
+          text: "I got your message!",
+          sender: "bot",
+          buttons: [
+            {
+              text: "Translate",
+              action: () => handleTranslate(input),
+              style:
+                "bg-gray-300 text-gray-700 px-4 py-2 rounded-md shadow-md hover:bg-gray-600 hover:text-white",
+            },
+            {
+              text: "Summarize",
+              action: () => handleSummarize(input),
+              style:
+                "bg-gray-300 text-gray-700 px-4 py-2 rounded-md shadow-md hover:bg-gray-600 hover:text-white",
+            },
+          ],
+        },
+      ];
+      setMessages(botReply);
     }, 1000);
+  };
+
+  const handleTranslate = async (text) => {
+    const translatedText = await translateText(text, selectedLanguage);
+    setMessages((prev) => [...prev, { text: translatedText, sender: "bot" }]);
+  };
+
+  const handleSummarize = async (text) => {
+    setMessages((prev) => [
+      ...prev,
+      { text: "Summary: " + text, sender: "bot" },
+    ]);
   };
 
   const startNewChat = () => {
     const defaultMessages = [
-        { text: "Hello! 👋", sender: "bot" },
-        { text: "I am here to help you with your translations!", sender: "bot" },
-      ];
-      setMessages(defaultMessages);
-      localStorage.removeItem("chatMessages");
+      { text: "Hello! 👋", sender: "bot" },
+      { text: "I am here to help you with your translations!", sender: "bot" },
+    ];
+    setMessages(defaultMessages);
+    localStorage.setItem("chatMessages", JSON.stringify(defaultMessages));
   };
 
   return (
@@ -75,6 +109,10 @@ const TextProvider = ({ children }) => {
         setInput,
         sendMessage,
         startNewChat,
+        selectedLanguage,
+        setSelectedLanguage,
+        handleTranslate,
+        handleSummarize,
       }}
     >
       {children}
