@@ -54,27 +54,7 @@ const TextProvider = ({ children }) => {
     setInput("");
 
     setTimeout(() => {
-      const botReply = [
-        ...newMessages,
-        {
-          text: "I got your message!",
-          sender: "bot",
-          buttons: [
-            {
-              text: "Translate",
-              action: () => handleTranslate(input),
-              style:
-                "bg-gray-300 text-gray-700 px-4 py-2 rounded-md shadow-md hover:bg-gray-600 hover:text-white",
-            },
-            {
-              text: "Summarize",
-              action: () => handleSummarize(input),
-              style:
-                "bg-gray-300 text-gray-700 px-4 py-2 rounded-md shadow-md hover:bg-gray-600 hover:text-white",
-            },
-          ],
-        },
-      ];
+      const botReply = [...newMessages];
       setMessages(botReply);
     }, 1000);
   };
